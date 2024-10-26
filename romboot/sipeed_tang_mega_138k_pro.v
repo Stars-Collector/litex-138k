@@ -9,7 +9,7 @@
 // Filename   : sipeed_tang_mega_138k_pro.v
 // Device     : GW5AST-LV138FPG676AES
 // LiteX sha1 : c1225736a
-// Date       : 2024-10-26 15:22:23
+// Date       : 2024-10-26 16:35:55
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -45,8 +45,8 @@ BaseSoC
 └─── csr (SoCCSRHandler)
 └─── irq (SoCIRQHandler)
 └─── ctrl (SoCController)
-└─── cpu (VexRiscvSMP)
-│    └─── [VexRiscvLitexSmpCluster_Cc1_Iw32Is4096Iy1_Dw32Ds4096Dy1_ITs4DTs4_Ood_Wm_Hb1]
+└─── cpu (VexRiscv)
+│    └─── [VexRiscv]
 └─── rom (SRAM)
 └─── sram (SRAM)
 └─── identifier (Identifier)
@@ -114,19 +114,30 @@ reg    [31:0] basesoc_bus_errors = 32'd0;
 reg           basesoc_bus_errors_re = 1'd0;
 wire   [31:0] basesoc_bus_errors_status;
 wire          basesoc_bus_errors_we;
-wire          basesoc_clintbus_ack;
-wire   [29:0] basesoc_clintbus_adr;
-wire    [1:0] basesoc_clintbus_bte;
-wire    [2:0] basesoc_clintbus_cti;
-wire          basesoc_clintbus_cyc;
-wire   [31:0] basesoc_clintbus_dat_r;
-wire   [31:0] basesoc_clintbus_dat_w;
-reg           basesoc_clintbus_err = 1'd0;
-wire    [3:0] basesoc_clintbus_sel;
-wire          basesoc_clintbus_stb;
-wire          basesoc_clintbus_we;
 wire          basesoc_cpu_rst;
 wire   [31:0] basesoc_dat_r;
+wire          basesoc_dbus_ack;
+wire   [29:0] basesoc_dbus_adr;
+wire    [1:0] basesoc_dbus_bte;
+wire    [2:0] basesoc_dbus_cti;
+wire          basesoc_dbus_cyc;
+wire   [31:0] basesoc_dbus_dat_r;
+wire   [31:0] basesoc_dbus_dat_w;
+wire          basesoc_dbus_err;
+wire    [3:0] basesoc_dbus_sel;
+wire          basesoc_dbus_stb;
+wire          basesoc_dbus_we;
+wire          basesoc_ibus_ack;
+wire   [29:0] basesoc_ibus_adr;
+wire    [1:0] basesoc_ibus_bte;
+wire    [2:0] basesoc_ibus_cti;
+wire          basesoc_ibus_cyc;
+wire   [31:0] basesoc_ibus_dat_r;
+wire   [31:0] basesoc_ibus_dat_w;
+wire          basesoc_ibus_err;
+wire    [3:0] basesoc_ibus_sel;
+wire          basesoc_ibus_stb;
+wire          basesoc_ibus_we;
 reg           basesoc_interface0_ram_bus_ack = 1'd0;
 wire   [29:0] basesoc_interface0_ram_bus_adr;
 wire    [1:0] basesoc_interface0_ram_bus_bte;
@@ -150,36 +161,6 @@ wire    [3:0] basesoc_interface1_ram_bus_sel;
 wire          basesoc_interface1_ram_bus_stb;
 wire          basesoc_interface1_ram_bus_we;
 reg    [31:0] basesoc_interrupt = 32'd0;
-reg           basesoc_jtag_capture = 1'd0;
-reg           basesoc_jtag_clk = 1'd0;
-reg           basesoc_jtag_enable = 1'd0;
-reg           basesoc_jtag_reset = 1'd0;
-reg           basesoc_jtag_shift = 1'd0;
-reg           basesoc_jtag_tdi = 1'd0;
-wire          basesoc_jtag_tdo;
-reg           basesoc_jtag_update = 1'd0;
-wire          basesoc_pbus_ack;
-wire   [29:0] basesoc_pbus_adr;
-wire    [1:0] basesoc_pbus_bte;
-wire    [2:0] basesoc_pbus_cti;
-wire          basesoc_pbus_cyc;
-wire   [31:0] basesoc_pbus_dat_r;
-wire   [31:0] basesoc_pbus_dat_w;
-wire          basesoc_pbus_err;
-wire    [3:0] basesoc_pbus_sel;
-wire          basesoc_pbus_stb;
-wire          basesoc_pbus_we;
-wire          basesoc_plicbus_ack;
-wire   [29:0] basesoc_plicbus_adr;
-wire    [1:0] basesoc_plicbus_bte;
-wire    [2:0] basesoc_plicbus_cti;
-wire          basesoc_plicbus_cyc;
-wire   [31:0] basesoc_plicbus_dat_r;
-wire   [31:0] basesoc_plicbus_dat_w;
-reg           basesoc_plicbus_err = 1'd0;
-wire    [3:0] basesoc_plicbus_sel;
-wire          basesoc_plicbus_stb;
-wire          basesoc_plicbus_we;
 reg           basesoc_ram_bus_ack = 1'd0;
 wire   [29:0] basesoc_ram_bus_adr;
 wire    [1:0] basesoc_ram_bus_bte;
@@ -220,7 +201,7 @@ reg           basesoc_sram0_adr_burst = 1'd0;
 wire   [31:0] basesoc_sram0_dat_r;
 wire   [31:0] basesoc_sram0_dat_w;
 reg     [3:0] basesoc_sram0_we = 4'd0;
-wire    [7:0] basesoc_sram1_adr;
+wire   [12:0] basesoc_sram1_adr;
 reg           basesoc_sram1_adr_burst = 1'd0;
 wire   [31:0] basesoc_sram1_dat_r;
 reg           basesoc_timer_en_re = 1'd0;
@@ -393,6 +374,7 @@ wire          basesoc_uart_uart_source_last;
 wire    [7:0] basesoc_uart_uart_source_payload_data;
 wire          basesoc_uart_uart_source_ready;
 wire          basesoc_uart_uart_source_valid;
+reg    [31:0] basesoc_vexriscv = 32'd0;
 reg    [19:0] count = 20'd1000000;
 wire          crg_clkin;
 wire          crg_clkout;
@@ -507,7 +489,7 @@ wire          csr_interconnect_re;
 wire          csr_interconnect_we;
 wire          done;
 reg           error = 1'd0;
-wire          grant;
+reg           grant = 1'd0;
 wire          gw5apll0;
 wire          gw5apll1;
 wire          gw5apll2;
@@ -536,7 +518,7 @@ reg           multiregimpl1 = 1'd0;
 reg           next_state = 1'd0;
 wire          por_clk;
 reg           por_rst = 1'd0;
-wire          request;
+wire    [1:0] request;
 reg           rs232phyrx_next_state = 1'd0;
 reg           rs232phyrx_state = 1'd0;
 reg           rs232phytx_next_state = 1'd0;
@@ -561,8 +543,8 @@ wire          shared_err;
 wire    [3:0] shared_sel;
 wire          shared_stb;
 wire          shared_we;
-reg     [5:0] slave_sel = 6'd0;
-reg     [5:0] slave_sel_r = 6'd0;
+reg     [3:0] slave_sel = 4'd0;
+reg     [3:0] slave_sel_r = 4'd0;
 reg           state = 1'd0;
 wire          sys_clk;
 wire          sys_rst;
@@ -582,8 +564,8 @@ end
 assign basesoc_bus_error = error;
 always @(*) begin
     basesoc_interrupt <= 32'd0;
-    basesoc_interrupt[2] <= basesoc_timer_irq;
-    basesoc_interrupt[1] <= basesoc_uart_irq;
+    basesoc_interrupt[1] <= basesoc_timer_irq;
+    basesoc_interrupt[0] <= basesoc_uart_irq;
 end
 assign por_clk = clk50;
 assign crg_por_done = (crg_por_count == 1'd0);
@@ -598,34 +580,20 @@ assign shared_stb = self4;
 assign shared_we = self5;
 assign shared_cti = self6;
 assign shared_bte = self7;
-assign basesoc_pbus_dat_r = shared_dat_r;
-assign basesoc_pbus_ack = (shared_ack & (grant == 1'd0));
-assign basesoc_pbus_err = (shared_err & (grant == 1'd0));
-assign request = {basesoc_pbus_cyc};
-assign grant = 1'd0;
+assign basesoc_ibus_dat_r = shared_dat_r;
+assign basesoc_dbus_dat_r = shared_dat_r;
+assign basesoc_ibus_ack = (shared_ack & (grant == 1'd0));
+assign basesoc_dbus_ack = (shared_ack & (grant == 1'd1));
+assign basesoc_ibus_err = (shared_err & (grant == 1'd0));
+assign basesoc_dbus_err = (shared_err & (grant == 1'd1));
+assign request = {basesoc_dbus_cyc, basesoc_ibus_cyc};
 always @(*) begin
-    slave_sel <= 6'd0;
-    slave_sel[0] <= (shared_adr[29:20] == 10'd963);
-    slave_sel[1] <= (shared_adr[29:14] == 16'd61441);
-    slave_sel[2] <= (shared_adr[29:15] == 1'd0);
-    slave_sel[3] <= (shared_adr[29:11] == 16'd32768);
-    slave_sel[4] <= (shared_adr[29:8] == 20'd524288);
-    slave_sel[5] <= (shared_adr[29:14] == 16'd61440);
+    slave_sel <= 4'd0;
+    slave_sel[0] <= (shared_adr[29:15] == 1'd0);
+    slave_sel[1] <= (shared_adr[29:11] == 16'd32768);
+    slave_sel[2] <= (shared_adr[29:13] == 15'd16384);
+    slave_sel[3] <= (shared_adr[29:14] == 16'd61440);
 end
-assign basesoc_plicbus_adr = shared_adr;
-assign basesoc_plicbus_dat_w = shared_dat_w;
-assign basesoc_plicbus_sel = shared_sel;
-assign basesoc_plicbus_stb = shared_stb;
-assign basesoc_plicbus_we = shared_we;
-assign basesoc_plicbus_cti = shared_cti;
-assign basesoc_plicbus_bte = shared_bte;
-assign basesoc_clintbus_adr = shared_adr;
-assign basesoc_clintbus_dat_w = shared_dat_w;
-assign basesoc_clintbus_sel = shared_sel;
-assign basesoc_clintbus_stb = shared_stb;
-assign basesoc_clintbus_we = shared_we;
-assign basesoc_clintbus_cti = shared_cti;
-assign basesoc_clintbus_bte = shared_bte;
 assign basesoc_ram_bus_adr = shared_adr;
 assign basesoc_ram_bus_dat_w = shared_dat_w;
 assign basesoc_ram_bus_sel = shared_sel;
@@ -654,20 +622,18 @@ assign interface0_stb = shared_stb;
 assign interface0_we = shared_we;
 assign interface0_cti = shared_cti;
 assign interface0_bte = shared_bte;
-assign basesoc_plicbus_cyc = (shared_cyc & slave_sel[0]);
-assign basesoc_clintbus_cyc = (shared_cyc & slave_sel[1]);
-assign basesoc_ram_bus_cyc = (shared_cyc & slave_sel[2]);
-assign basesoc_interface0_ram_bus_cyc = (shared_cyc & slave_sel[3]);
-assign basesoc_interface1_ram_bus_cyc = (shared_cyc & slave_sel[4]);
-assign interface0_cyc = (shared_cyc & slave_sel[5]);
-assign shared_err = (((((basesoc_plicbus_err | basesoc_clintbus_err) | basesoc_ram_bus_err) | basesoc_interface0_ram_bus_err) | basesoc_interface1_ram_bus_err) | interface0_err);
+assign basesoc_ram_bus_cyc = (shared_cyc & slave_sel[0]);
+assign basesoc_interface0_ram_bus_cyc = (shared_cyc & slave_sel[1]);
+assign basesoc_interface1_ram_bus_cyc = (shared_cyc & slave_sel[2]);
+assign interface0_cyc = (shared_cyc & slave_sel[3]);
+assign shared_err = (((basesoc_ram_bus_err | basesoc_interface0_ram_bus_err) | basesoc_interface1_ram_bus_err) | interface0_err);
 assign wait_1 = ((shared_stb & shared_cyc) & (~shared_ack));
 always @(*) begin
     error <= 1'd0;
     shared_ack <= 1'd0;
     shared_dat_r <= 32'd0;
-    shared_ack <= (((((basesoc_plicbus_ack | basesoc_clintbus_ack) | basesoc_ram_bus_ack) | basesoc_interface0_ram_bus_ack) | basesoc_interface1_ram_bus_ack) | interface0_ack);
-    shared_dat_r <= (((((({32{slave_sel_r[0]}} & basesoc_plicbus_dat_r) | ({32{slave_sel_r[1]}} & basesoc_clintbus_dat_r)) | ({32{slave_sel_r[2]}} & basesoc_ram_bus_dat_r)) | ({32{slave_sel_r[3]}} & basesoc_interface0_ram_bus_dat_r)) | ({32{slave_sel_r[4]}} & basesoc_interface1_ram_bus_dat_r)) | ({32{slave_sel_r[5]}} & interface0_dat_r));
+    shared_ack <= (((basesoc_ram_bus_ack | basesoc_interface0_ram_bus_ack) | basesoc_interface1_ram_bus_ack) | interface0_ack);
+    shared_dat_r <= (((({32{slave_sel_r[0]}} & basesoc_ram_bus_dat_r) | ({32{slave_sel_r[1]}} & basesoc_interface0_ram_bus_dat_r)) | ({32{slave_sel_r[2]}} & basesoc_interface1_ram_bus_dat_r)) | ({32{slave_sel_r[3]}} & interface0_dat_r));
     if (done) begin
         shared_dat_r <= 32'd4294967295;
         shared_ack <= 1'd1;
@@ -884,7 +850,7 @@ always @(*) begin
 end
 assign basesoc_timer_irq = (basesoc_timer_pending_status & basesoc_timer_enable_storage);
 assign basesoc_timer_zero_status = basesoc_timer_zero_trigger;
-assign basesoc_sram1_adr = basesoc_interface1_ram_bus_adr[7:0];
+assign basesoc_sram1_adr = basesoc_interface1_ram_bus_adr[12:0];
 assign basesoc_interface1_ram_bus_dat_r = basesoc_sram1_dat_r;
 always @(*) begin
     interface0_ack <= 1'd0;
@@ -1175,64 +1141,88 @@ assign csr_interconnect_dat_r = (((csr_bankarray_interface0_bank_bus_dat_r | csr
 always @(*) begin
     self0 <= 30'd0;
     case (grant)
+        1'd0: begin
+            self0 <= basesoc_ibus_adr;
+        end
         default: begin
-            self0 <= basesoc_pbus_adr;
+            self0 <= basesoc_dbus_adr;
         end
     endcase
 end
 always @(*) begin
     self1 <= 32'd0;
     case (grant)
+        1'd0: begin
+            self1 <= basesoc_ibus_dat_w;
+        end
         default: begin
-            self1 <= basesoc_pbus_dat_w;
+            self1 <= basesoc_dbus_dat_w;
         end
     endcase
 end
 always @(*) begin
     self2 <= 4'd0;
     case (grant)
+        1'd0: begin
+            self2 <= basesoc_ibus_sel;
+        end
         default: begin
-            self2 <= basesoc_pbus_sel;
+            self2 <= basesoc_dbus_sel;
         end
     endcase
 end
 always @(*) begin
     self3 <= 1'd0;
     case (grant)
+        1'd0: begin
+            self3 <= basesoc_ibus_cyc;
+        end
         default: begin
-            self3 <= basesoc_pbus_cyc;
+            self3 <= basesoc_dbus_cyc;
         end
     endcase
 end
 always @(*) begin
     self4 <= 1'd0;
     case (grant)
+        1'd0: begin
+            self4 <= basesoc_ibus_stb;
+        end
         default: begin
-            self4 <= basesoc_pbus_stb;
+            self4 <= basesoc_dbus_stb;
         end
     endcase
 end
 always @(*) begin
     self5 <= 1'd0;
     case (grant)
+        1'd0: begin
+            self5 <= basesoc_ibus_we;
+        end
         default: begin
-            self5 <= basesoc_pbus_we;
+            self5 <= basesoc_dbus_we;
         end
     endcase
 end
 always @(*) begin
     self6 <= 3'd0;
     case (grant)
+        1'd0: begin
+            self6 <= basesoc_ibus_cti;
+        end
         default: begin
-            self6 <= basesoc_pbus_cti;
+            self6 <= basesoc_dbus_cti;
         end
     endcase
 end
 always @(*) begin
     self7 <= 2'd0;
     case (grant)
+        1'd0: begin
+            self7 <= basesoc_ibus_bte;
+        end
         default: begin
-            self7 <= basesoc_pbus_bte;
+            self7 <= basesoc_dbus_bte;
         end
     endcase
 end
@@ -1253,6 +1243,22 @@ always @(posedge por_clk) begin
 end
 
 always @(posedge sys_clk) begin
+    case (grant)
+        1'd0: begin
+            if ((~request[0])) begin
+                if (request[1]) begin
+                    grant <= 1'd1;
+                end
+            end
+        end
+        1'd1: begin
+            if ((~request[1])) begin
+                if (request[0]) begin
+                    grant <= 1'd0;
+                end
+            end
+        end
+    endcase
     slave_sel_r <= slave_sel;
     if (wait_1) begin
         if ((~done)) begin
@@ -1556,7 +1562,8 @@ always @(posedge sys_clk) begin
         basesoc_timer_enable_re <= 1'd0;
         basesoc_timer_value <= 32'd0;
         basesoc_interface1_ram_bus_ack <= 1'd0;
-        slave_sel_r <= 6'd0;
+        grant <= 1'd0;
+        slave_sel_r <= 4'd0;
         count <= 20'd1000000;
         csr_bankarray_sel_r <= 1'd0;
         rs232phytx_state <= 1'd0;
@@ -1573,10 +1580,10 @@ end
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// Memory rom: 6218-words x 32-bit
+// Memory rom: 6058-words x 32-bit
 //------------------------------------------------------------------------------
 // Port 0 | Read: Sync  | Write: ---- | 
-reg [31:0] rom[0:6217];
+reg [31:0] rom[0:6057];
 initial begin
 	$readmemh("sipeed_tang_mega_138k_pro_rom.init", rom);
 end
@@ -1668,10 +1675,10 @@ assign basesoc_uart_rx_fifo_rdport_dat_r = storage_1_dat1;
 
 
 //------------------------------------------------------------------------------
-// Memory bootrom: 256-words x 32-bit
+// Memory bootrom: 8192-words x 32-bit
 //------------------------------------------------------------------------------
 // Port 0 | Read: Sync  | Write: ---- | 
-reg [31:0] bootrom[0:255];
+reg [31:0] bootrom[0:8191];
 initial begin
 	$readmemh("sipeed_tang_mega_138k_pro_bootrom.init", bootrom);
 end
@@ -1830,48 +1837,40 @@ PLL #(
 );
 
 //------------------------------------------------------------------------------
-// Instance VexRiscvLitexSmpCluster_Cc1_Iw32Is4096Iy1_Dw32Ds4096Dy1_ITs4DTs4_Ood_Wm_Hb1 of VexRiscvLitexSmpCluster_Cc1_Iw32Is4096Iy1_Dw32Ds4096Dy1_ITs4DTs4_Ood_Wm_Hb1 Module.
+// Instance VexRiscv of VexRiscv Module.
 //------------------------------------------------------------------------------
-VexRiscvLitexSmpCluster_Cc1_Iw32Is4096Iy1_Dw32Ds4096Dy1_ITs4DTs4_Ood_Wm_Hb1 VexRiscvLitexSmpCluster_Cc1_Iw32Is4096Iy1_Dw32Ds4096Dy1_ITs4DTs4_Ood_Wm_Hb1(
+VexRiscv VexRiscv(
 	// Inputs.
-	.clintWishbone_ADR      (basesoc_clintbus_adr),
-	.clintWishbone_CYC      (basesoc_clintbus_cyc),
-	.clintWishbone_DAT_MOSI (basesoc_clintbus_dat_w),
-	.clintWishbone_STB      (basesoc_clintbus_stb),
-	.clintWishbone_WE       (basesoc_clintbus_we),
-	.debugCd_external_clk   (sys_clk),
-	.debugCd_external_reset ((sys_rst | basesoc_reset)),
-	.debugPort_capture      (basesoc_jtag_capture),
-	.debugPort_enable       (basesoc_jtag_enable),
-	.debugPort_reset        (basesoc_jtag_reset),
-	.debugPort_shift        (basesoc_jtag_shift),
-	.debugPort_tdi          (basesoc_jtag_tdi),
-	.debugPort_update       (basesoc_jtag_update),
-	.interrupts             (basesoc_interrupt),
-	.jtag_clk               (basesoc_jtag_clk),
-	.peripheral_ACK         (basesoc_pbus_ack),
-	.peripheral_DAT_MISO    (basesoc_pbus_dat_r),
-	.peripheral_ERR         (basesoc_pbus_err),
-	.plicWishbone_ADR       (basesoc_plicbus_adr),
-	.plicWishbone_CYC       (basesoc_plicbus_cyc),
-	.plicWishbone_DAT_MOSI  (basesoc_plicbus_dat_w),
-	.plicWishbone_STB       (basesoc_plicbus_stb),
-	.plicWishbone_WE        (basesoc_plicbus_we),
+	.clk                    (sys_clk),
+	.dBusWishbone_ACK       (basesoc_dbus_ack),
+	.dBusWishbone_DAT_MISO  (basesoc_dbus_dat_r),
+	.dBusWishbone_ERR       (basesoc_dbus_err),
+	.externalInterruptArray (basesoc_interrupt),
+	.externalResetVector    (basesoc_vexriscv),
+	.iBusWishbone_ACK       (basesoc_ibus_ack),
+	.iBusWishbone_DAT_MISO  (basesoc_ibus_dat_r),
+	.iBusWishbone_ERR       (basesoc_ibus_err),
+	.reset                  ((sys_rst | basesoc_reset)),
+	.softwareInterrupt      (1'd0),
+	.timerInterrupt         (1'd0),
 
 	// Outputs.
-	.clintWishbone_ACK      (basesoc_clintbus_ack),
-	.clintWishbone_DAT_MISO (basesoc_clintbus_dat_r),
-	.debugPort_tdo          (basesoc_jtag_tdo),
-	.peripheral_ADR         (basesoc_pbus_adr),
-	.peripheral_BTE         (basesoc_pbus_bte),
-	.peripheral_CTI         (basesoc_pbus_cti),
-	.peripheral_CYC         (basesoc_pbus_cyc),
-	.peripheral_DAT_MOSI    (basesoc_pbus_dat_w),
-	.peripheral_SEL         (basesoc_pbus_sel),
-	.peripheral_STB         (basesoc_pbus_stb),
-	.peripheral_WE          (basesoc_pbus_we),
-	.plicWishbone_ACK       (basesoc_plicbus_ack),
-	.plicWishbone_DAT_MISO  (basesoc_plicbus_dat_r)
+	.dBusWishbone_ADR       (basesoc_dbus_adr),
+	.dBusWishbone_BTE       (basesoc_dbus_bte),
+	.dBusWishbone_CTI       (basesoc_dbus_cti),
+	.dBusWishbone_CYC       (basesoc_dbus_cyc),
+	.dBusWishbone_DAT_MOSI  (basesoc_dbus_dat_w),
+	.dBusWishbone_SEL       (basesoc_dbus_sel),
+	.dBusWishbone_STB       (basesoc_dbus_stb),
+	.dBusWishbone_WE        (basesoc_dbus_we),
+	.iBusWishbone_ADR       (basesoc_ibus_adr),
+	.iBusWishbone_BTE       (basesoc_ibus_bte),
+	.iBusWishbone_CTI       (basesoc_ibus_cti),
+	.iBusWishbone_CYC       (basesoc_ibus_cyc),
+	.iBusWishbone_DAT_MOSI  (basesoc_ibus_dat_w),
+	.iBusWishbone_SEL       (basesoc_ibus_sel),
+	.iBusWishbone_STB       (basesoc_ibus_stb),
+	.iBusWishbone_WE        (basesoc_ibus_we)
 );
 
 //------------------------------------------------------------------------------
@@ -1903,5 +1902,5 @@ DFFP DFFP_1(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2024-10-26 15:22:23.
+//  Auto-Generated by LiteX on 2024-10-26 16:35:55.
 //------------------------------------------------------------------------------
